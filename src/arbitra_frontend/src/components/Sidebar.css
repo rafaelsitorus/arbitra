@@ -1,0 +1,161 @@
+/* Sidebar.css */
+:root {
+  --primary-color: #121212;
+  --secondary-color: #1a1a1a;
+  --accent-color: #29b6d1;
+  --light-accent: rgba(41, 182, 209, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border-color: #2c2c2c;
+  --transition: all 0.3s ease;
+}
+
+.sidebar {
+  width: 220px;
+  background-color: var(--primary-color);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 15px;
+  border-right: 1px solid var(--border-color);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 0 10px;
+  text-decoration: none;
+}
+
+.logo {
+  background-color: var(--secondary-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  overflow: hidden;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+
+.logo-circle {
+  background-color: var(--accent-color);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.logo-text {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.nav-menu {
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background-color: var(--secondary-color);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background-color: var(--light-accent);
+  color: var(--accent-color);
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-icon::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background-color: currentColor;
+  border-radius: 4px;
+}
+
+.deals-icon::before {
+  content: "";
+  width: 18px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+.inspect-icon::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.profile-icon::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.nav-item span {
+  font-size: 14px;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  margin-top: 20px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.logout-button:hover {
+  color: var(--text-primary);
+}
+
+.logout-button span {
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    width: 80px;
+  }
+  
+  .logo-text, .nav-item span, .logout-button span {
+    display: none;
+  }
+}

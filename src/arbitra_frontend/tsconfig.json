@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "allowJs": false,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": false,
     "forceConsistentCasingInFileNames": true,
@@ -24,7 +24,5 @@
     ],
     "useDefineForClassFields": true
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src/**/*"]
 }
