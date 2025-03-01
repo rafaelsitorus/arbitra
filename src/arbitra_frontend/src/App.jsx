@@ -1,30 +1,24 @@
-import { useState } from 'react';
-import { arbitra_backend } from 'declarations/arbitra_backend';
+import { Routes, Route } from 'react-router-dom';
+import Front from './pages/Front.jsx';
+import Home from './pages/Home.jsx';
+import Deals from './pages/Deals.jsx'
+import Profile from './pages/Profile.jsx'
+import AddDeal from './pages/AddDeal.jsx'
+import { Container } from 'react-bootstrap';
 
 function App() {
-  const [greeting, setGreeting] = useState('');
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    const name = event.target.elements.name.value;
-    arbitra_backend.greet(name).then((greeting) => {
-      setGreeting(greeting);
-    });
-    return false;
-  }
-
   return (
-    <main>
-      <img src="/logo2.svg" alt="DFINITY logo" />
-      <br />
-      <br />
-      <form action="#" onSubmit={handleSubmit}>
-        <label htmlFor="name">Enter your name: &nbsp;</label>
-        <input id="name" alt="Name" type="text" />
-        <button type="submit">Click Me!</button>
-      </form>
-      <section id="greeting">{greeting}</section>
-    </main>
+    <>
+      <Container className="mb-4 min-vh-100">
+        <Routes>
+          <Route path="/" element={<Front />} />
+          <Route path='/Home' element={<Home />}/>
+          <Route path='/Deals' element={<Deals />}/>
+          <Route path='/Profile' element={<Profile />}/>
+          <Route path='/AddDeal' element={<AddDeal />}/>
+        </Routes>
+      </Container>
+    </>
   );
 }
 

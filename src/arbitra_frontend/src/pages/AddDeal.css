@@ -1,0 +1,111 @@
+.add-deal-container {
+  display: flex;
+  height: 100vh;
+  background-color: #121212;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+.add-deal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* 
+    Centers items horizontally but keeps them aligned to the top.
+    If you want vertical centering too, change `justify-content` to `center`.
+  */
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Top bar */
+.top-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Form styling */
+.add-deal-form {
+  background-color: #1f1f1f;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 600px;
+  width: 100%;
+  /* Center form horizontally if content is wider than max-width */
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #333;
+  background-color: #2a2a2a;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+/* Radio group */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-group label {
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.radio-group input[type="radio"] {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+/* Button group */
+.button-group {
+  text-align: right;
+}
+
+.submit-btn {
+  background-color: #1f8eed;
+  border: none;
+  padding: 10px 16px;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.submit-btn:hover {
+  background-color: #3ea2ff;
+}
