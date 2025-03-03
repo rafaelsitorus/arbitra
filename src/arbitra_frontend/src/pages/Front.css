@@ -37,7 +37,6 @@
 .btn-primary {
   background: linear-gradient(to right, #3182ce, #4fd1c5); /* Blue to cyan */
   padding: 0.5rem 1.5rem;
-  border-radius: 9999px;
   font-weight: 500;
   transition: opacity 0.3s;
   border: none;

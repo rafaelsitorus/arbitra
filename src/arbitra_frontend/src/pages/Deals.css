@@ -1,97 +1,90 @@
 .my-deals-container {
   display: flex;
   height: 100vh;
-  background-color: #121212;
-  color: #fff;
-  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom right, #000000, #1a1a1a, #000000);
 }
 
 .my-deals-content {
-  flex: 1;
-  padding: 24px;
+  flex-grow: 1;
+  padding: 2rem;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
-.my-deals-content::-webkit-scrollbar {
-  display: none;
-}
-
-/* Remove scrollbars from table wrapper as well */
-.deal-table-wrapper {
-  flex: 1;
-  overflow-x: auto;
-  margin-bottom: 24px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.deal-table-wrapper::-webkit-scrollbar {
-  display: none;
-}
-
-/* Top bar */
 .top-bar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: 2rem;
 }
 
 .page-title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
 }
 
-/* Transaction summary */
 .transaction-summary {
-  margin-bottom: 24px;
+  margin-bottom: 2rem;
 }
 
 .transaction-amount {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 2.5rem;
+  color: #63b3ed;
   margin: 0;
 }
 
 .transaction-subtitle {
-  margin: 4px 0 0;
-  color: #999;
+  color: #a0aec0;
+  margin: 0;
 }
 
-/* Tabs */
 .deal-tabs {
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #2d3748;
 }
 
 .deal-tab {
-  background: none;
-  border: 1px solid #444;
-  padding: 8px 16px;
-  border-radius: 4px;
-  color: #fff;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: #a0aec0;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
-.deal-tab.active,
 .deal-tab:hover {
-  background-color: #1f1f1f;
-  border-color: #1f8eed;
+  color: #e2e8f0;
 }
 
-/* Deal table */
+.deal-tab.active {
+  color: #63b3ed;
+  font-weight: 600;
+}
+
+.deal-tab.active:after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, #3182ce, #4fd1c5);
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+
 .deal-table-wrapper {
-  flex: 1;
-  overflow-x: auto;
-  margin-bottom: 24px;
+  background: linear-gradient(to right, rgba(23, 23, 23, 0.8), rgba(0, 0, 0, 0.8));
+  backdrop-filter: blur(4px);
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  margin-bottom: 2rem;
 }
 
 .deal-table {
@@ -99,63 +92,174 @@
   border-collapse: collapse;
 }
 
-.deal-table th,
-.deal-table td {
+.deal-table th {
+  background-color: rgba(15, 15, 15, 0.5);
+  color: #63b3ed;
+  font-weight: 500;
   text-align: left;
-  padding: 12px 8px;
-  border-bottom: 1px solid #333;
+  padding: 1rem;
+  font-size: 0.875rem;
 }
 
-.deal-table th {
-  background-color: #1f1f1f;
+.deal-table td {
+  padding: 1rem;
+  border-top: 1px solid #2d3748;
+  color: #e2e8f0;
+}
+
+.status-pending {
+  color: #f59e0b;
   font-weight: 500;
 }
 
-.deal-table tr:hover {
-  background-color: #1c1c1c;
+.status-completed {
+  color: #10b981;
+  font-weight: 500;
 }
 
-.inspect-button {
-  background-color: #1f8eed;
-  border: none;
-  padding: 6px 12px;
-  color: #fff;
+.status-cancelled {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.confirm-button, .cancel-button {
+  padding: 0.4rem 0.75rem;
   border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
-.inspect-button:hover {
-  background-color: #3ea2ff;
+.confirm-button {
+  background-color: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #10b981;
 }
 
-/* Status styling */
-.status-succeed {
-  color: #2ecc71;
+.confirm-button:hover {
+  background-color: rgba(16, 185, 129, 0.3);
 }
 
-.status-on-progress {
-  color: #f1c40f;
+.cancel-button {
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #ef4444;
 }
 
-.status-abort {
-  color: #e74c3c;
+.cancel-button:hover {
+  background-color: rgba(239, 68, 68, 0.3);
 }
 
-/* Add transaction button */
+.waiting-message, .completed-message {
+  font-size: 0.75rem;
+  color: #a0aec0;
+  font-style: italic;
+}
+
 .add-transaction-button {
-  text-align: right;
+  text-decoration: none;
+  display: block;
+  text-align: center;
 }
 
 .add-transaction-button button {
-  background-color: #1f8eed;
+  background: linear-gradient(to right, #3182ce, #4fd1c5);
+  color: white;
   border: none;
-  padding: 10px 16px;
-  color: #fff;
-  border-radius: 4px;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 4px 6px rgba(49, 130, 206, 0.25);
 }
 
 .add-transaction-button button:hover {
-  background-color: #3ea2ff;
+  opacity: 0.9;
+}
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid #3182ce;
+  color: #3182ce;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh-button:hover {
+  background: rgba(49, 130, 206, 0.1);
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refreshing {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  background-color: rgba(185, 28, 28, 0.2);
+  color: #f87171;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(185, 28, 28, 0.3);
+}
+
+.error-message svg {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #a0aec0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(63, 131, 248, 0.1);
+  border-radius: 50%;
+  border-top-color: #3182ce;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.no-deals-message {
+  text-align: center;
+  padding: 3rem;
+  color: #a0aec0;
+}
+
+.no-deals-message p {
+  margin-bottom: 2rem;
 }

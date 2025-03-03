@@ -1,4 +1,4 @@
-import Array "mo:base/Array";
+import _Array "mo:base/Array";
 import Nat "mo:base/Nat";
 import Principal "mo:base/Principal";
 import Debug "mo:base/Debug";
@@ -7,7 +7,7 @@ import HashMap "mo:base/HashMap";
 import Time "mo:base/Time";
 import Iter "mo:base/Iter";
 import Result "mo:base/Result";
-import Error "mo:base/Error";
+import _Error "mo:base/Error";
 import Nat32 "mo:base/Nat32";
 
 actor Arbitra {

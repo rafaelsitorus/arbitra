@@ -56,7 +56,7 @@ const Front = () => {
               Arbitra brings powerful, secure, and scalable smart contract solutions to the Internet Computer Protocol ecosystem.
             </p>
             <div className="hero-buttons">
-              <Link to="/Home" className="btn-primary btn-with-icon">
+              <Link to="/Login" className="btn-primary btn-with-icon">
                 Get Started <ArrowRight className="btn-icon" />
               </Link>
               <button className="btn-secondary">

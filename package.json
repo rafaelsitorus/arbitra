@@ -14,5 +14,10 @@
   "type": "module",
   "workspaces": [
     "src/arbitra_frontend"
-  ]
+  ],
+  "dependencies": {
+    "@dfinity/agent": "^2.3.0",
+    "@dfinity/auth-client": "^2.3.0",
+    "@dfinity/identity": "^2.3.0"
+  }
 }

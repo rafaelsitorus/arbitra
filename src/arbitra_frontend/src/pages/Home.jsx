@@ -1,9 +1,33 @@
+import React, { useEffect, useState } from 'react';
 import { Search, Bell, ChevronDown, ExternalLink, DollarSign } from 'lucide-react';
 import Sidebar from '../components/Sidebar.jsx';
+import { getMyPrincipal } from '../api/auth.ts'; // Import this function
 import './Home.css';
 
 const Home = () => {
   
+  const [userPrincipal, setUserPrincipal] = useState('');
+
+  useEffect(() => {
+    const fetchUserPrincipal = async () => {
+      try {
+        const principal = await getMyPrincipal();
+        if (principal) {
+          const principalStr = principal.toString();
+          console.log('Logged in user:', principalStr);
+          setUserPrincipal(principalStr);
+        } else {
+          console.log('No user logged in');
+        }
+      } catch (error) {
+        console.error('Error fetching user principal:', error);
+      }
+    };
+    
+    fetchUserPrincipal();
+  }, []);
+
+
   const trendingData = [
     { id: 1, name: 'Marina Bay', by: 'xxx', amount: '$23,754.02' },
     { id: 2, name: 'Jakarta MRT', by: '0xf93g7fe6g9j9i...', amount: '$823,091.65' },
