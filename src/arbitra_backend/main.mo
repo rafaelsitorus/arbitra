@@ -393,49 +393,55 @@ actor Arbitra {
   public shared(msg) func cancelEscrow(escrowId: EscrowId) : async Result.Result<(), Text> {
     let caller = msg.caller;
     
-    // Check if authenticated
-    switch (checkAuth(caller)) {
-      case (#err(e)) { return #err(e) };
-      case (#ok(_)) { /* Continue */ };
-    };
-    
-    switch (escrows.get(escrowId)) {
-      case null { return #err("Escrow transaction not found"); };
-      case (?transaction) {
-        // Check if caller is the owner or seller
-        if (Principal.notEqual(caller, owner) and Principal.notEqual(caller, transaction.seller)) {
-          return #err("Only the owner or seller can cancel the escrow");
+    // Get username from active session
+    switch (activeSessions.get(caller)) {
+      case null { return #err("Authentication required") };
+      case (?username) {
+        // Get the derived Principal for this user
+        switch (userPrincipalMap.get(username)) {
+          case null { return #err("User Principal not found") };
+          case (?userPrincipal) {
+            switch (escrows.get(escrowId)) {
+              case null { return #err("Escrow transaction not found"); };
+              case (?transaction) {
+                // Check if the derived principal is the owner or seller
+                if (Principal.notEqual(userPrincipal, owner) and Principal.notEqual(userPrincipal, transaction.buyer)) {
+                  return #err("Only the owner or seller can cancel the escrow");
+                };
+                
+                // Check if transaction is still pending
+                if (transaction.status != #Pending) {
+                  return #err("Transaction is no longer pending");
+                };
+                
+                // Update transaction status
+                let updatedTransaction : EscrowTransaction = {
+                  id = transaction.id;
+                  seller = transaction.seller;
+                  buyer = transaction.buyer;
+                  amount = transaction.amount;
+                  description = transaction.description;
+                  status = #Refunded;
+                  timestamp = transaction.timestamp;
+                };
+                
+                escrows.put(escrowId, updatedTransaction);
+                
+                // Return funds to buyer
+                let buyerBalance = switch (userBalances.get(transaction.buyer)) {
+                  case null { 0 };
+                  case (?bal) { bal };
+                };
+                
+                userBalances.put(transaction.buyer, buyerBalance + transaction.amount);
+                
+                Debug.print("Escrow " # Nat.toText(escrowId) # " cancelled and " # Nat.toText(transaction.amount) # " refunded to " # Principal.toText(transaction.buyer));
+                
+                #ok(())
+              };
+            };
+          };
         };
-        
-        // Check if transaction is still pending
-        if (transaction.status != #Pending) {
-          return #err("Transaction is no longer pending");
-        };
-        
-        // Update transaction status
-        let updatedTransaction : EscrowTransaction = {
-          id = transaction.id;
-          seller = transaction.seller;
-          buyer = transaction.buyer;
-          amount = transaction.amount;
-          description = transaction.description;
-          status = #Refunded;
-          timestamp = transaction.timestamp;
-        };
-        
-        escrows.put(escrowId, updatedTransaction);
-        
-        // Return funds to buyer
-        let buyerBalance = switch (userBalances.get(transaction.buyer)) {
-          case null { 0 };
-          case (?bal) { bal };
-        };
-        
-        userBalances.put(transaction.buyer, buyerBalance + transaction.amount);
-        
-        Debug.print("Escrow " # Nat.toText(escrowId) # " cancelled and " # Nat.toText(transaction.amount) # " refunded to " # Principal.toText(transaction.buyer));
-        
-        #ok(())
       };
     };
   };
@@ -468,7 +474,7 @@ actor Arbitra {
         switch (userPrincipalMap.get(username)) {
           case null { return #err("User Principal not found") };
           case (?userPrincipal) {
-            // Find all escrows where the user is buyer or seller
+            // Find all escrows where the user is current buyer or seller
             let userEscrows = Iter.toArray<EscrowTransaction>(
               Iter.filter<EscrowTransaction>(
                 escrows.vals(),
@@ -476,6 +482,16 @@ actor Arbitra {
                   Principal.equal(tx.buyer, userPrincipal) or Principal.equal(tx.seller, userPrincipal)
                 }
               )
+            );
+            
+            // Sort escrows by ID (optional, but useful for consistent display)
+            let sorted = Array.sort<EscrowTransaction>(
+              userEscrows,
+              func(a: EscrowTransaction, b: EscrowTransaction) : { #less; #equal; #greater } {
+                if (a.id < b.id) { #less }
+                else if (a.id > b.id) { #greater }
+                else { #equal }
+              }
             );
             
             #ok(userEscrows)
@@ -582,16 +598,76 @@ actor Arbitra {
   };
   
   // Change owner (only current owner can do this)
-  public shared(msg) func changeOwner(newOwner: Principal) : async Result.Result<(), Text> {
+  public shared(msg) func changeOwner(escrowId: EscrowId, newOwner: Principal) : async Result.Result<(), Text> {
     let caller = msg.caller;
     
-    if (Principal.notEqual(caller, owner)) {
-      return #err("Only the current owner can change ownership");
+    // Get username from active session
+    switch (activeSessions.get(caller)) {
+      case null { return #err("Authentication required") };
+      case (?username) {
+        // Get the derived Principal for this user
+        switch (userPrincipalMap.get(username)) {
+          case null { return #err("User Principal not found") };
+          case (?userPrincipal) {
+            // First check if the escrow exists
+            switch (escrows.get(escrowId)) {
+              case null { return #err("Escrow transaction not found") };
+              case (?transaction) {
+                // Check if the user is the buyer of this escrow
+                if (Principal.notEqual(userPrincipal, transaction.buyer)) {
+                  return #err("Only the buyer of this escrow can change ownership");
+                };
+                
+                // Check if transaction is still pending
+                if (transaction.status != #Pending) {
+                  return #err("Cannot change ownership of a completed or refunded transaction");
+                };
+                
+                // Check if new owner has sufficient balance
+                let newOwnerBalance = switch (userBalances.get(newOwner)) {
+                  case null { 0 };
+                  case (?bal) { bal };
+                };
+                
+                // Make sure new owner has enough balance to cover the escrow amount
+                if (newOwnerBalance < transaction.amount) {
+                  return #err("New owner has insufficient balance to take over this escrow");
+                };
+                
+                // 1. Return funds to original buyer
+                let originalBuyerBalance = switch (userBalances.get(transaction.buyer)) {
+                  case null { 0 };
+                  case (?bal) { bal };
+                };
+                userBalances.put(transaction.buyer, originalBuyerBalance + transaction.amount);
+                
+                // 2. Deduct funds from new owner
+                userBalances.put(newOwner, newOwnerBalance - transaction.amount);
+                
+                // 3. Update the escrow transaction with the new owner (buyer)
+                let updatedTransaction : EscrowTransaction = {
+                  id = transaction.id;
+                  seller = transaction.seller;
+                  buyer = newOwner; // Change the buyer to the new owner
+                  amount = transaction.amount;
+                  description = transaction.description;
+                  status = transaction.status;
+                  timestamp = transaction.timestamp;
+                };
+                
+                escrows.put(escrowId, updatedTransaction);
+                
+                Debug.print("Escrow " # Nat.toText(escrowId) # " ownership transferred to " # Principal.toText(newOwner) 
+                  # " by user " # username # ". Amount " # Nat.toText(transaction.amount) 
+                  # " refunded to original buyer and deducted from new owner");
+                
+                #ok(())
+              };
+            };
+          };
+        };
+      };
     };
-    
-    owner := newOwner;
-    Debug.print("Ownership transferred to " # Principal.toText(newOwner));
-    #ok(())
   };
   
   // Get canister cycle balance
