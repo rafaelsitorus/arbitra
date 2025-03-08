@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, LayoutDashboard, FileText, UserCircle } from 'lucide-react';
+import { logout } from '../api/auth'; // Import the logout function
 import arbitraLogo from '../assets/arbitra.png'; 
 import './Sidebar.css';
 
@@ -8,6 +9,18 @@ const Sidebar = () => {
   // Get the current location using the useLocation hook
   const location = useLocation();
   const currentPath = location.pathname;
+  const navigate = useNavigate(); // Add navigation hook
+  
+  // Handle logout function
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // After successful logout, redirect to login page
+      navigate('/');
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   
   return (
     <div className="sidebar">
@@ -33,7 +46,8 @@ const Sidebar = () => {
         </Link>
       </nav>
       
-      <div className="logout-button">
+      {/* Add onClick handler to the logout button */}
+      <div className="logout-button" onClick={handleLogout} role="button" tabIndex={0}>
         <LogOut size={18} />
         <span>Logout</span>
       </div>

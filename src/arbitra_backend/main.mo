@@ -389,7 +389,7 @@ actor Arbitra {
     };
   };
   
-  // Cancel escrow (only owner or seller)
+  // Cancel escrow (only owner or buyer)
   public shared(msg) func cancelEscrow(escrowId: EscrowId) : async Result.Result<(), Text> {
     let caller = msg.caller;
     

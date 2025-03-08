@@ -1,111 +1,287 @@
 .add-deal-container {
   display: flex;
   height: 100vh;
-  background-color: #121212;
-  color: #fff;
-  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom right, #000000, #1a1a1a, #000000);
 }
 
 .add-deal-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  /* 
-    Centers items horizontally but keeps them aligned to the top.
-    If you want vertical centering too, change `justify-content` to `center`.
-  */
-  align-items: center;
-  justify-content: flex-start;
-  padding: 24px;
+  flex-grow: 1;
+  padding: 2rem;
   overflow-y: auto;
 }
 
-/* Top bar */
 .top-bar {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 2.5rem;
 }
 
 .page-title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
 }
 
-/* Form styling */
+.subtitle {
+  color: #a0aec0;
+  font-size: 1rem;
+  margin-top: 0;
+}
+
+.form-and-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
 .add-deal-form {
-  background-color: #1f1f1f;
+  background: linear-gradient(to right, rgba(23, 23, 23, 0.8), rgba(0, 0, 0, 0.8));
+  backdrop-filter: blur(4px);
+  border: 1px solid #2d3748;
+  padding: 2rem;
   border-radius: 8px;
-  padding: 24px;
-  max-width: 600px;
-  width: 100%;
-  /* Center form horizontally if content is wider than max-width */
-  margin: 0 auto;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
 }
 
-.form-group input[type="text"],
+.form-icon {
+  margin-right: 0.5rem;
+  color: #63b3ed;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #a0aec0;
+}
+
+.form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #333;
-  background-color: #2a2a2a;
-  color: #fff;
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  padding: 0.75rem;
+  border: 1px solid #2d3748;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background-color: rgba(17, 24, 39, 0.8);
+  color: #e2e8f0;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #63b3ed;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
 }
 
-.form-group textarea {
-  resize: vertical;
-}
-
-/* Radio group */
 .radio-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.75rem;
 }
 
 .radio-group label {
-  font-weight: 400;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.radio-group input[type="radio"] {
-  transform: scale(1.1);
   cursor: pointer;
+  font-weight: normal;
 }
 
-/* Button group */
+.radio-group input {
+  margin-right: 0.5rem;
+  width: auto;
+}
+
 .button-group {
-  text-align: right;
+  margin-top: 2rem;
 }
 
 .submit-btn {
-  background-color: #1f8eed;
+  background: linear-gradient(to right, #3182ce, #4fd1c5);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
   border: none;
-  padding: 10px 16px;
-  color: #fff;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
+  transition: opacity 0.15s ease-in-out;
+  box-shadow: 0 4px 6px rgba(49, 130, 206, 0.25);
 }
 
 .submit-btn:hover {
-  background-color: #3ea2ff;
+  opacity: 0.9;
+}
+
+.submit-btn:disabled {
+  background: linear-gradient(to right, #2c5282, #38a89d);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  background-color: rgba(185, 28, 28, 0.2);
+  color: #f87171;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(185, 28, 28, 0.3);
+}
+
+.error-message svg {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Success screen styling */
+.success-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, rgba(23, 23, 23, 0.8), rgba(0, 0, 0, 0.8));
+  backdrop-filter: blur(4px);
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  padding: 3rem;
+  margin-top: 2rem;
+  text-align: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.success-icon {
+  color: #10b981;
+  margin-bottom: 1.5rem;
+}
+
+.success-container h2 {
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.success-container p {
+  color: #a0aec0;
+}
+
+/* Contract Preview styling */
+.contract-preview {
+  max-width: 500px;
+}
+
+.contract-preview h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #ffffff;
+}
+
+.preview-card {
+  position: relative;
+}
+
+.preview-card:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(49, 130, 206, 0.2), rgba(79, 209, 197, 0.2));
+  border-radius: 8px;
+  filter: blur(1.5rem);
+  z-index: -1;
+}
+
+.preview-header {
+  background: linear-gradient(to right, #3182ce, #4fd1c5);
+  color: white;
+  padding: 1rem;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.preview-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.preview-body {
+  background: linear-gradient(to right, rgba(23, 23, 23, 0.8), rgba(0, 0, 0, 0.8));
+  backdrop-filter: blur(4px);
+  border: 1px solid #2d3748;
+  border-top: none;
+  padding: 1.5rem;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.preview-item {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.preview-item strong {
+  flex: 0 0 100px;
+  color: #63b3ed;
+}
+
+.preview-item span {
+  color: #e2e8f0;
+}
+
+.preview-item .preview-description {
+  max-height: 100px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  background-color: rgba(17, 24, 39, 0.5);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #a0aec0;
+}
+
+.preview-footer {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #a0aec0;
+}
+
+.flow-step .step {
+  background: linear-gradient(to right, #3182ce, #4fd1c5);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 0 10px rgba(99, 179, 237, 0.5);
+}
+
+@media (max-width: 992px) {
+  .form-and-preview {
+    grid-template-columns: 1fr;
+  }
+  
+  .contract-preview {
+    max-width: 100%;
+  }
 }
