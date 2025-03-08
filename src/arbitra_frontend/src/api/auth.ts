@@ -1,138 +1,265 @@
+import { Actor, HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
-import { HttpAgent, Identity } from "@dfinity/agent";
-import { ActorSubclass } from "@dfinity/agent";
-import { _SERVICE } from "../../../declarations/arbitra_backend/arbitra_backend.did";
-import { createActor } from "../../../declarations/arbitra_backend";
+import { Principal } from "@dfinity/principal";
+import { idlFactory } from "../../../declarations/arbitra_backend/arbitra_backend.did.js";
+import type { _SERVICE } from "../../../declarations/arbitra_backend/arbitra_backend.did.d.ts";
 
-// DFX host for local development
-const DFX_HOST = "http://127.0.0.1:4943";
-// II URL for local development 
-const II_URL = "http://be2us-64aaa-aaaaa-qaabq-cai.localhost:4943/";
+// Environment constants - Use window for browser environment
+const DFX_NETWORK = (window as any).process?.env?.DFX_NETWORK || "local";
+const IS_IC = DFX_NETWORK === "ic";
+const HOST = IS_IC ? "https://ic0.app" : "http://localhost:4943";
+const CANISTER_ID = (window as any).process?.env?.CANISTER_ID_ARBITRA_BACKEND || "";
 
-// For production
-// const DFX_HOST = "https://ic0.app";
-// const II_URL = "https://identity.ic0.app";
+// Auth state management
+type AuthState = {
+  isAuthenticated: boolean;
+  username: string | null;
+  principal: string | null;
+};
 
-const ARBITRA_BACKEND_CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai"; // Update with your actual ID
+// Initialize state
+const initialState: AuthState = {
+  isAuthenticated: false,
+  username: null,
+  principal: null,
+};
 
+let authState = { ...initialState };
 let authClient: AuthClient | null = null;
-let actor: ActorSubclass<_SERVICE> | null = null;
+let backendActor: Actor | null = null;
 
-export async function initAuth(): Promise<AuthClient> {
-  if (!authClient) {
-    // Create auth client with localStorage persistence
-    authClient = await AuthClient.create({
-      idleOptions: {
-        // Set a longer idle timeout (12 hours)
-        idleTimeout: 12 * 60 * 60 * 1000,
-        disableIdle: true
-      }
-    });
+// Event system for state changes
+const listeners = new Set<(state: AuthState) => void>();
 
-    // If we're already logged in, restore the actor
-    if (await authClient.isAuthenticated()) {
-      await restoreActor();
-    }
-  }
-  return authClient;
-}
+const notifyListeners = () => {
+  listeners.forEach((listener) => listener({ ...authState }));
+};
 
-// New helper function to restore the actor from existing auth session
-async function restoreActor(): Promise<void> {
-  if (!authClient) return;
-  
-  try {
-    const identity = authClient.getIdentity();
-    const agent = new HttpAgent({ 
-      host: DFX_HOST, 
-      identity 
-    });
-    
-    // For local development only
-    if (DFX_HOST === "http://127.0.0.1:4943") {
-      await agent.fetchRootKey();
-    }
-    
-    actor = createActor(ARBITRA_BACKEND_CANISTER_ID, {
-      agent
-    });
-    
-    console.log("Actor restored from existing session");
-  } catch (err) {
-    console.error("Failed to restore actor:", err);
-  }
-}
-
-export async function login(): Promise<boolean> {
-  console.log("logging in...");
+// Initialize backend actor
+export const initBackendActor = async (): Promise<_SERVICE> => {
+  if (backendActor) return backendActor as unknown as _SERVICE;
 
   if (!authClient) {
-    await initAuth();
+    authClient = await AuthClient.create();
   }
-  
-  return new Promise((resolve) => {
-    try {
-      authClient!.login({
-        identityProvider: II_URL,
-        // Set to true to maintain session across page reloads
-        maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 7 days in nanoseconds
-        onSuccess: async () => {
-          try {
-            await restoreActor();
-            resolve(true);
-          } catch (err) {
-            console.error("Error in onSuccess:", err);
-            resolve(false);
-          }
-        },
-        onError: (error: string | undefined) => {
-          console.error("Login failed:", error);
-          resolve(false);
-        }
-      });
-    } catch (err) {
-      console.error("Login process error:", err);
-      resolve(false);
-    }
+
+  const agent = new HttpAgent({
+    host: HOST,
+    identity: authClient.getIdentity(),
   });
-}
 
-export async function logout(): Promise<void> {
-  if (authClient) {
-    await authClient.logout();
-    actor = null;
+  // Fetch root key when in development
+  if (!IS_IC) {
+    await agent.fetchRootKey();
   }
-}
 
-export function getActor(): ActorSubclass<_SERVICE> | null {
-  return actor;
-}
+  // Create the actor
+  backendActor = Actor.createActor(idlFactory, {
+    agent,
+    canisterId: CANISTER_ID,
+  });
 
-export async function getMyPrincipal() {
-  // Ensure actor is available before using it
-  if (!actor) {
-    // Try to restore from existing session
-    if (!authClient || !(await authClient.isAuthenticated())) {
-      await initAuth();
-      if (!authClient || !(await authClient.isAuthenticated())) {
-        return null;
+  return backendActor as unknown as _SERVICE;
+};
+
+// Authentication functions
+export const register = async (username: string, password: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const actor = await initBackendActor();
+    const result = await actor.register(username, password);
+    
+    if ('ok' in result) {
+      return { success: true, message: result.ok };
+    } else {
+      return { success: false, message: result.err };
+    }
+  } catch (error: unknown) {
+    console.error("Registration error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Error: ${errorMessage || "Unknown error"}` };
+  }
+};
+
+export const login = async (username: string, password: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const actor = await initBackendActor();
+    const result = await actor.login(username, password);
+    
+    if ('ok' in result) {
+      authState.isAuthenticated = true;
+      authState.username = username;
+      
+      // Get user ID after login
+      const principalResult = await actor.getMyUserId();
+      authState.principal = principalResult.toText();
+      
+      notifyListeners();
+      return { success: true, message: result.ok };
+    } else {
+      return { success: false, message: result.err };
+    }
+  } catch (error: unknown) {
+    console.error("Login error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Error: ${errorMessage || "Unknown error"}` };
+  }
+};
+
+export const logout = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    const actor = await initBackendActor();
+    const result = await actor.logout();
+    
+    if ('ok' in result) {
+      // Reset auth state
+      authState = { ...initialState };
+      notifyListeners();
+      return { success: true, message: result.ok };
+    } else {
+      return { success: false, message: result.err };
+    }
+  } catch (error: unknown) {
+    console.error("Logout error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Error: ${errorMessage || "Unknown error"}` };
+  }
+};
+
+export const checkAuthStatus = async (): Promise<boolean> => {
+  try {
+    const actor = await initBackendActor();
+    const result = await actor.getLoginStatus();
+    
+    if ('ok' in result) {
+      const message = result.ok;
+      const usernameMatch = message.match(/Logged in as (.*)/);
+      
+      if (usernameMatch && usernameMatch[1]) {
+        authState.isAuthenticated = true;
+        authState.username = usernameMatch[1];
+        
+        // Get user ID
+        const principalResult = await actor.getMyUserId();
+        authState.principal = principalResult.toText();
+        
+        notifyListeners();
+        return true;
       }
     }
-    await restoreActor();
-    if (!actor) return null;
+    
+    return false;
+  } catch (error: unknown) {
+    console.error("Auth status check error:", error);
+    return false;
   }
-  
+};
+
+// User data functions
+export const getUserBalance = async (): Promise<{ success: boolean; balance?: number; message?: string }> => {
   try {
-    return await actor.getMyUserId();
-  } catch (error: any) {
-    console.error("Failed to get user ID:", error);
+    const actor = await initBackendActor();
+    const result = await actor.getUserBalance();
+    
+    if ('ok' in result) {
+      return { success: true, balance: Number(result.ok) };
+    } else {
+      return { success: false, message: result.err };
+    }
+  } catch (error: unknown) {
+    console.error("Get balance error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Error: ${errorMessage || "Unknown error"}` };
+  }
+};
+
+export const addBalance = async (amount: number): Promise<{ success: boolean; balance?: number; message?: string }> => {
+  try {
+    const actor = await initBackendActor();
+    const result = await actor.addBalance(BigInt(amount));
+    
+    if ('ok' in result) {
+      return { success: true, balance: Number(result.ok) };
+    } else {
+      return { success: false, message: result.err };
+    }
+  } catch (error: unknown) {
+    console.error("Add balance error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Error: ${errorMessage || "Unknown error"}` };
+  }
+};
+
+// State subscription
+export const subscribe = (callback: (state: AuthState) => void): () => void => {
+  listeners.add(callback);
+  callback({ ...authState }); // Initial state
+  
+  // Return unsubscribe function
+  return () => {
+    listeners.delete(callback);
+  };
+};
+
+// Get current auth state
+export const getAuthState = (): AuthState => {
+  return { ...authState };
+};
+
+// Export the actor initialization function to be used by other modules
+export const getBackendActor = initBackendActor;
+
+// Get current user principal
+export const getMyPrincipal = async (): Promise<Principal | null> => {
+  try {
+    // Always get the fresh derived principal from the backend
+    const actor = await initBackendActor();
+    
+    try {
+      // This calls the backend's getMyUserId function which returns the derived principal
+      const derivedPrincipal = await actor.getMyUserId();
+      
+      if (derivedPrincipal) {
+        // Store the derived principal in auth state
+        authState.principal = derivedPrincipal.toText();
+        console.log("Retrieved derived principal:", derivedPrincipal.toText());
+        notifyListeners();
+        return derivedPrincipal;
+      }
+    } catch (error) {
+      console.error("Failed to get derived principal:", error);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error in getMyPrincipal:", error);
     return null;
   }
+};
+
+async function deriveUserPrincipal(basePrincipalStr, username) {
+  try {
+    // Step 1: Convert the base principal string to a Principal object
+    const basePrincipal = Principal.fromText(basePrincipalStr);
+
+    // Step 2: Convert the username to a byte array (UTF-8 encoding)
+    const textEncoder = new TextEncoder();
+    const usernameBlob = textEncoder.encode(username);
+
+    // Step 3: Convert the base principal to a byte array
+    const principalBlob = basePrincipal.toUint8Array();
+
+    // Step 4: Combine the two byte arrays
+    const combinedBlob = new Uint8Array([...principalBlob, ...usernameBlob]);
+
+    // Step 5: Create a new Principal from the combined byte array
+    const derivedPrincipal = Principal.fromUint8Array(combinedBlob);
+
+    // Return the derived principal as a string
+    return derivedPrincipal.toText();
+  } catch (error) {
+    console.error('Error deriving user principal:', error);
+    throw error;
+  }
 }
 
-export async function isAuthenticated(): Promise<boolean> {
-  if (!authClient) {
-    await initAuth();
-  }
-  return await authClient!.isAuthenticated();
-}
+export const isAuthenticated = checkAuthStatus;

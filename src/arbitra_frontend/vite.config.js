@@ -10,12 +10,29 @@ dotenv.config({ path: '../../.env' });
 export default defineConfig({
   build: {
     emptyOutDir: true,
+    rollupOptions: {
+      external: [
+        // Exclude .did files from processing
+        /\.did$/
+      ]
+    }
   },
   optimizeDeps: {
     esbuildOptions: {
       define: {
         global: "globalThis",
       },
+      plugins: [
+        {
+          name: 'did-loader',
+          setup(build) {
+            // Handle .did files by treating them as external
+            build.onResolve({ filter: /\.did$/ }, args => {
+              return { path: args.path, external: true };
+            });
+          },
+        },
+      ],
     },
   },
   server: {
@@ -44,6 +61,7 @@ export default defineConfig({
         ),
       },
     ],
-    dedupe: ['@dfinity/agent'],
+    // Add explicit extensions to help Vite resolve the imports
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json']
   },
 });

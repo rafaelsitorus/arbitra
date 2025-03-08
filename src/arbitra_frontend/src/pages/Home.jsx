@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Bell, ChevronDown, ExternalLink, DollarSign } from 'lucide-react';
 import Sidebar from '../components/Sidebar.jsx';
-import { getMyPrincipal } from '../api/auth.ts'; // Import this function
+import { getMyPrincipal } from '../api/auth.ts';
 import './Home.css';
 
 const Home = () => {

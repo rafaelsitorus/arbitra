@@ -3,20 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle, AlertTriangle, Users, FileText, DollarSign, Calendar, ArrowRight } from 'lucide-react';
 import Sidebar from '../components/Sidebar.jsx';
 import { createEscrow } from '../api/escrow';
-import { Principal } from '@dfinity/principal';
+import { getUserBalance } from '../api/auth';
 import './AddDeal.css';
 
 const AddDeal = () => {
   const navigate = useNavigate();
   
-  // Enhanced form fields
-  const [sellerPrincipal, setSellerPrincipal] = useState('');
+  // Changed variable name from sellerPrincipal to sellerUsername to reflect its true purpose
+  const [sellerUsername, setSellerUsername] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
   
   // For contract preview
   const [formattedDate, setFormattedDate] = useState('');
@@ -30,15 +31,25 @@ const AddDeal = () => {
         day: 'numeric'
       }));
     }
+    
+    // Fetch user balance when component loads
+    const fetchBalance = async () => {
+      try {
+        const balanceResult = await getUserBalance();
+        if (balanceResult.success && balanceResult.balance !== undefined) {
+          setUserBalance(balanceResult.balance);
+        }
+      } catch (err) {
+        console.error("Error fetching balance:", err);
+      }
+    };
+    
+    fetchBalance();
   }, [deadline]);
 
-  const validatePrincipal = (value) => {
-    try {
-      if (value) Principal.fromText(value);
-      return true;
-    } catch (e) {
-      return false;
-    }
+  // Remove Principal validation since we're using usernames now
+  const validateUsername = (username) => {
+    return username.trim().length > 0;
   };
 
   const handleSubmit = async (e) => {
@@ -46,8 +57,8 @@ const AddDeal = () => {
     setError('');
     setIsSubmitting(true);
 
-    if (!validatePrincipal(sellerPrincipal)) {
-      setError('Invalid Principal ID format');
+    if (!validateUsername(sellerUsername)) {
+      setError('Username cannot be empty');
       setIsSubmitting(false);
       return;
     }
@@ -60,20 +71,29 @@ const AddDeal = () => {
         throw new Error('Amount must be a positive number');
       }
       
+      if (numericAmount > userBalance) {
+        throw new Error(`Insufficient balance. Your balance is ${userBalance} ICP.`);
+      }
+      
       // Include deadline in the description
       const fullDescription = deadline 
         ? `${description}\n\nDeadline: ${formattedDate}` 
         : description;
         
-      const result = await createEscrow(sellerPrincipal, numericAmount, fullDescription);
+      // Pass username to createEscrow - the backend will handle the principal mapping
+      const result = await createEscrow(sellerUsername, numericAmount, fullDescription);
       
-      console.log('Contract created:', result);
-      setSuccess(true);
-      
-      // Reset form after short delay
-      setTimeout(() => {
-        navigate('/Deals');
-      }, 2000);
+      if (result.success) {
+        console.log('Contract created:', result);
+        setSuccess(true);
+        
+        // Reset form after short delay
+        setTimeout(() => {
+          navigate('/Deals');
+        }, 2000);
+      } else {
+        setError(result.message || 'Failed to create contract');
+      }
     } catch (error) {
       console.error('Failed to create contract:', error);
       setError(error.message || 'Failed to create contract. Please try again.');
@@ -109,16 +129,16 @@ const AddDeal = () => {
               )}
               
               <div className="form-group">
-                <label htmlFor="sellerPrincipal">
+                <label htmlFor="sellerUsername">
                   <Users size={18} className="form-icon" />
-                  Recipient Principal ID
+                  Recipient Username
                 </label>
                 <input
-                  id="sellerPrincipal"
+                  id="sellerUsername"
                   type="text"
-                  placeholder="Enter the Principal ID of the recipient..."
-                  value={sellerPrincipal}
-                  onChange={(e) => setSellerPrincipal(e.target.value)}
+                  placeholder="Enter the username of the recipient..."
+                  value={sellerUsername}
+                  onChange={(e) => setSellerUsername(e.target.value)}
                   required
                 />
                 <small>The user who will receive the funds once conditions are met</small>
@@ -139,7 +159,7 @@ const AddDeal = () => {
                   onChange={(e) => setAmount(e.target.value)}
                   required
                 />
-                <small>This amount will be held in escrow until contract completion</small>
+                <small>This amount will be held in escrow until contract completion (Your balance: {userBalance} ICP)</small>
               </div>
 
               <div className="form-group">
@@ -194,7 +214,7 @@ const AddDeal = () => {
                   </div>
                   <div className="preview-item">
                     <strong>To:</strong>
-                    <span>{sellerPrincipal ? `${sellerPrincipal.substring(0, 6)}...${sellerPrincipal.substring(sellerPrincipal.length - 4)}` : 'Recipient'}</span>
+                    <span>{sellerUsername || 'Recipient'}</span>
                   </div>
                   <div className="preview-item">
                     <strong>Amount:</strong>

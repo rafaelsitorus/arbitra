@@ -139,7 +139,6 @@ const Front = () => {
                       "Canister-based smart contracts",
                       "Chain-key cryptography",
                       "WebAssembly execution environment",
-                      "HTTP outcalls for oracle functionality"
                     ].map((item, index) => (
                       <li key={index} className="ecosystem-list-item">
                         <div className="list-bullet">

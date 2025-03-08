@@ -263,3 +263,58 @@
 .no-deals-message p {
   margin-bottom: 2rem;
 }
+
+/* Update the transaction summary to match dark theme */
+.transaction-summary {
+  background: linear-gradient(to right, rgba(23, 23, 23, 0.8), rgba(0, 0, 0, 0.8));
+  backdrop-filter: blur(4px);
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.summary-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.summary-item {
+  flex: 1;
+}
+
+.balance-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.balance-icon {
+  color: #63b3ed; /* Changed to match the blue accent color */
+}
+
+.transaction-amount {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0;
+  color: #e2e8f0; /* Changed to match light text color */
+}
+
+.transaction-subtitle {
+  color: #a0aec0; /* Changed to match other subtitle colors */
+  margin: 0;
+}
+
+.pending-count {
+  margin-top: 0.75rem;
+  font-style: italic;
+  color: #a0aec0; /* Make sure this matches too */
+}
+
+.role-cell {
+  font-weight: 500;
+  color: #63b3ed; /* Use the blue accent color */
+}
