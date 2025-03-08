@@ -262,9 +262,10 @@ const Deals = () => {
         ) : (
           <>
             <div className="deal-table-wrapper">
-              <table className="deal-table">
+            <table className="deal-table">
                 <thead>
                   <tr>
+                    <th>Escrow ID</th>
                     <th>Description</th>
                     <th>Your Role</th>
                     <th>Counterparty</th>
@@ -280,6 +281,7 @@ const Deals = () => {
                     
                     return (
                       <tr key={deal.id.toString()}>
+                        <td>{deal.id.toString()}</td>
                         <td>{deal.description || 'No description'}</td>
                         <td className="role-cell">{deal.role === 'buyer' ? 'Buyer' : 'Seller'}</td>
                         <td>

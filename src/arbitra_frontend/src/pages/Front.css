@@ -479,7 +479,8 @@
 }
 
 .footer-links {
-  display: grid;
+  display: flex;
+  justify-content: flex-end;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem 3rem;
 }
