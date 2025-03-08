@@ -209,14 +209,28 @@ export const getAuthState = (): AuthState => {
 export const getBackendActor = initBackendActor;
 
 // Get current user principal
+// Get current user principal
 export const getMyPrincipal = async (): Promise<Principal | null> => {
   try {
-    // Always get the fresh derived principal from the backend
+    // Get the actor to call backend functions
     const actor = await initBackendActor();
     
+    // Check if we have a username in the auth state
+    if (!authState.username) {
+      console.error("No username available in auth state");
+      return null;
+    }
+    
     try {
-      // This calls the backend's getMyUserId function which returns the derived principal
-      const derivedPrincipal = await actor.getMyUserId();
+      // Use deriveUserPrincipal with the current identity's principal and username
+      const identity = authClient?.getIdentity();
+      if (!identity) {
+        console.error("No identity available");
+        return null;
+      }
+      
+      const basePrincipal = identity.getPrincipal();
+      const derivedPrincipal = await actor.deriveUserPrincipal(basePrincipal, authState.username);
       
       if (derivedPrincipal) {
         // Store the derived principal in auth state
@@ -226,7 +240,7 @@ export const getMyPrincipal = async (): Promise<Principal | null> => {
         return derivedPrincipal;
       }
     } catch (error) {
-      console.error("Failed to get derived principal:", error);
+      console.error("Failed to derive principal:", error);
     }
     
     return null;
@@ -235,31 +249,5 @@ export const getMyPrincipal = async (): Promise<Principal | null> => {
     return null;
   }
 };
-
-async function deriveUserPrincipal(basePrincipalStr, username) {
-  try {
-    // Step 1: Convert the base principal string to a Principal object
-    const basePrincipal = Principal.fromText(basePrincipalStr);
-
-    // Step 2: Convert the username to a byte array (UTF-8 encoding)
-    const textEncoder = new TextEncoder();
-    const usernameBlob = textEncoder.encode(username);
-
-    // Step 3: Convert the base principal to a byte array
-    const principalBlob = basePrincipal.toUint8Array();
-
-    // Step 4: Combine the two byte arrays
-    const combinedBlob = new Uint8Array([...principalBlob, ...usernameBlob]);
-
-    // Step 5: Create a new Principal from the combined byte array
-    const derivedPrincipal = Principal.fromUint8Array(combinedBlob);
-
-    // Return the derived principal as a string
-    return derivedPrincipal.toText();
-  } catch (error) {
-    console.error('Error deriving user principal:', error);
-    throw error;
-  }
-}
 
 export const isAuthenticated = checkAuthStatus;

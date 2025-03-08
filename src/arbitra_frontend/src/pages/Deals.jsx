@@ -15,11 +15,19 @@ const Deals = () => {
   const [userPrincipal, setUserPrincipal] = useState(null);
   const [userBalance, setUserBalance] = useState(0);
 
+  // First get the user principal
   useEffect(() => {
     fetchUserPrincipal();
-    fetchDeals();
-    fetchUserBalance();
   }, []);
+
+  // Only fetch deals after we have the user principal
+  useEffect(() => {
+    if (userPrincipal) {
+      console.log("User principal loaded, fetching deals and balance");
+      fetchDeals();
+      fetchUserBalance();
+    }
+  }, [userPrincipal]);
 
   const fetchUserPrincipal = async () => {
     try {
@@ -49,7 +57,7 @@ const Deals = () => {
       setLoading(true);
       setError('');
       
-      console.log("Fetching deals...");
+      console.log("Fetching deals with principal:", userPrincipal);
       const response = await getUserEscrows();
       console.log("Raw deals response:", response);
       
@@ -65,19 +73,23 @@ const Deals = () => {
         console.log(`Escrow ${index} - Buyer: ${escrow.buyer.toString()}, Seller: ${escrow.seller.toString()}`);
       });
       
-      // Hardcode the buyer principal since that's what both deals use
-      const buyerPrincipal = "";
+      // Use the user principal for filtering
+      if (!userPrincipal) {
+        console.error("User principal not available for filtering deals");
+        setError("User identification not available. Please refresh the page.");
+        return;
+      }
       
-      // Properly categorize deals based on the known buyer principal
+      // Properly categorize deals based on the user's principal
       const asBuyer = escrows.filter(deal => 
-        deal.buyer && deal.buyer.toString() === buyerPrincipal
+        deal.buyer && deal.buyer.toString() === userPrincipal
       );
       
       const asSeller = escrows.filter(deal => 
-        deal.seller && deal.seller.toString() === buyerPrincipal
+        deal.seller && deal.seller.toString() === userPrincipal
       );
       
-      console.log(`Found ${asBuyer.length} deals as buyer and ${asSeller.length} as seller`);
+      console.log(`Found ${asBuyer.length} deals as buyer and ${asSeller.length} as seller for principal ${userPrincipal}`);
       
       const userDeals = { asBuyer, asSeller };
       setDeals(userDeals);
@@ -248,72 +260,73 @@ const Deals = () => {
             </Link>
           </div>
         ) : (
-          <div className="deal-table-wrapper">
-            <table className="deal-table">
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th>Your Role</th>
-                  <th>Counterparty</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDeals.map((deal) => {
-                  const isPending = deal.status === 'Pending';
-                  const isBuyer = deal.role === 'buyer';
-                  
-                  return (
-                    <tr key={deal.id.toString()}>
-                      <td>{deal.description || 'No description'}</td>
-                      <td className="role-cell">{deal.role === 'buyer' ? 'Buyer' : 'Seller'}</td>
-                      <td>
-                        {deal.counterparty ? 
-                          `${deal.counterparty.substring(0, 5)}...${deal.counterparty.substring(deal.counterparty.length - 5)}` : 
-                          'Unknown'
-                        }
-                      </td>
-                      <td>{Number(deal.amount)} ICP</td>
-                      <td className={`status-${deal.status.toLowerCase()}`}>
-                        {deal.status}
-                      </td>
-                      <td>
-                        {deal.status === 'Pending' && deal.role === 'buyer' && (
-                          <div className="action-buttons">
-                            <button 
-                              className="confirm-button" 
-                              onClick={() => handleConfirmDelivery(deal.id)}
-                            >
-                              Confirm
-                            </button>
-                            <button 
-                              className="cancel-button"
-                              onClick={() => handleCancelEscrow(deal.id)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
-                        {deal.status === 'Pending' && deal.role === 'seller' && (
-                          <span className="waiting-message">Waiting for buyer</span>
-                        )}
-                        {deal.status !== 'Pending' && (
-                          <span className="completed-message">No action needed</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="deal-table-wrapper">
+              <table className="deal-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>Your Role</th>
+                    <th>Counterparty</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDeals.map((deal) => {
+                    const isPending = deal.status === 'Pending';
+                    const isBuyer = deal.role === 'buyer';
+                    
+                    return (
+                      <tr key={deal.id.toString()}>
+                        <td>{deal.description || 'No description'}</td>
+                        <td className="role-cell">{deal.role === 'buyer' ? 'Buyer' : 'Seller'}</td>
+                        <td>
+                          {deal.counterparty ? 
+                            `${deal.counterparty.substring(0, 5)}...${deal.counterparty.substring(deal.counterparty.length - 5)}` : 
+                            'Unknown'
+                          }
+                        </td>
+                        <td>{Number(deal.amount)} ICP</td>
+                        <td className={`status-${deal.status.toLowerCase()}`}>
+                          {deal.status}
+                        </td>
+                        <td>
+                          {deal.status === 'Pending' && deal.role === 'buyer' && (
+                            <div className="action-buttons">
+                              <button 
+                                className="confirm-button" 
+                                onClick={() => handleConfirmDelivery(deal.id)}
+                              >
+                                Confirm
+                              </button>
+                              <button 
+                                className="cancel-button"
+                                onClick={() => handleCancelEscrow(deal.id)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
+                          {deal.status === 'Pending' && deal.role === 'seller' && (
+                            <span className="waiting-message">Waiting for buyer</span>
+                          )}
+                          {deal.status !== 'Pending' && (
+                            <span className="completed-message">No action needed</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <Link to='/AddDeal' className="add-transaction-button">
+              <button>+ Add transaction</button>
+            </Link>
+          </>
         )}
-
-        <Link to='/AddDeal' className="add-transaction-button">
-          <button>+ Add transaction</button>
-        </Link>
       </div>
     </div>
   );
