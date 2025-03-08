@@ -34,12 +34,6 @@ const Front = () => {
           </div>
           <span className="logo-text">Arbitra</span>
         </div>
-        <div className="nav-links">
-          <a href="#features" className="nav-link">Features</a>
-          <a href="#ecosystem" className="nav-link">Ecosystem</a>
-          <a href="#developers" className="nav-link">Developers</a>
-          <a href="#roadmap" className="nav-link">Roadmap</a>
-        </div>
         <button className="btn-primary">
           Launch App
         </button>
@@ -59,7 +53,7 @@ const Front = () => {
               <Link to="/Login" className="btn-primary btn-with-icon">
                 Get Started <ArrowRight className="btn-icon" />
               </Link>
-              <button className="btn-secondary">
+              <button className="btn-secondary" onClick={() => window.open('https://docs.google.com/document/d/1BSItX0Y60F4xbMhlNFBTTJa0nQxyLppVQeItOjSLZGg/edit?tab=t.0', '_blank', 'noopener noreferrer')}>
                 Read Docs
               </button>
             </div>
@@ -178,9 +172,9 @@ const Front = () => {
               <p className="cta-description">
                 Join the growing community of developers and businesses leveraging Arbitra on ICP.
               </p>
-              <button className="btn-primary btn-large">
-                Launch Arbitra Platform
-              </button>
+              <Link to="/Login" className="btn-primary btn-with-icon">
+                Get Started <ArrowRight className="btn-icon" />
+              </Link>
             </div>
           </div>
         </div>
@@ -196,35 +190,18 @@ const Front = () => {
             </div>
             <div className="footer-links">
               <div className="footer-column">
-                <div className="footer-column-title">Platform</div>
-                <ul className="footer-menu">
-                  <li><a href="#" className="footer-link">Features</a></li>
-                  <li><a href="#" className="footer-link">Security</a></li>
-                  <li><a href="#" className="footer-link">Roadmap</a></li>
-                </ul>
-              </div>
-              <div className="footer-column">
                 <div className="footer-column-title">Developers</div>
                 <ul className="footer-menu">
-                  <li><a href="#" className="footer-link">Documentation</a></li>
-                  <li><a href="#" className="footer-link">API</a></li>
-                  <li><a href="#" className="footer-link">GitHub</a></li>
-                </ul>
-              </div>
-              <div className="footer-column">
-                <div className="footer-column-title">Community</div>
-                <ul className="footer-menu">
-                  <li><a href="#" className="footer-link">Discord</a></li>
-                  <li><a href="#" className="footer-link">Twitter</a></li>
-                  <li><a href="#" className="footer-link">Blog</a></li>
+                <li><a href="https://docs.google.com/document/d/1BSItX0Y60F4xbMhlNFBTTJa0nQxyLppVQeItOjSLZGg/edit?tab=t.0" className="footer-link" target="_blank" rel="noopener noreferrer">Documentation</a></li>
+                <li><a href="https://github.com/rafaelsitorus/arbitra" className="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a></li>
                 </ul>
               </div>
               <div className="footer-column">
                 <div className="footer-column-title">Resources</div>
                 <ul className="footer-menu">
-                  <li><a href="#" className="footer-link">About ICP</a></li>
-                  <li><a href="#" className="footer-link">Whitepaper</a></li>
-                  <li><a href="#" className="footer-link">Contact</a></li>
+                <li><a href="https://internetcomputer.org/docs/home" className="footer-link" target="_blank" rel="noopener noreferrer">About ICP</a></li>
+                <li><a href="https://internetcomputer.org/whitepaper.pdf" className="footer-link" target="_blank" rel="noopener noreferrer">Whitepaper</a></li>
+                <li><a href="mailto:contact@arbitra.io" className="footer-link">Contact</a></li>
                 </ul>
               </div>
             </div>
