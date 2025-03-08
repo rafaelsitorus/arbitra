@@ -1,59 +1,163 @@
-# `arbitra`
+*Arbitra Technical Documentation*  
+*Decentralized Escrow System on Internet Computer Protocol (ICP)*  
 
-Welcome to your new `arbitra` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+---
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+### *1. Overview*  
+Arbitra is a blockchain-based escrow system built on the Internet Computer Protocol (ICP). It enables secure transactions between buyers and sellers by automating fund locking, deliverable verification, and dispute resolution. Key features include user authentication, escrow management, and cycle (ICP) handling for canister operations.  
 
-To learn more before you start working with `arbitra`, see the following documentation available online:
+---
 
-- [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
-- [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
-- [Motoko Programming Language Guide](https://internetcomputer.org/docs/current/motoko/main/motoko)
-- [Motoko Language Quick Reference](https://internetcomputer.org/docs/current/motoko/main/language-manual)
+### *2. Key Components*  
+#### *a. User Authentication*  
+•⁠  ⁠Users register with a username and password.  
+•⁠  ⁠Sessions are managed via ⁠ activeSessions ⁠ to track logged-in users.  
+•⁠  ⁠A unique ⁠ Principal ⁠ is derived for each user to enhance security.  
 
-If you want to start working on your project right away, you might want to try the following commands:
+#### *b. Escrow System*  
+•⁠  ⁠Buyers lock tokens in escrow until sellers fulfill deliverables.  
+•⁠  ⁠Transactions are immutable and transparent, recorded on the ICP blockchain.  
+•⁠  ⁠Funds are released to sellers only if deliverables are confirmed or refunded to buyers if canceled.  
 
-```bash
-cd arbitra/
-dfx help
-dfx canister --help
-```
+#### *c. Cycle Management*  
+•⁠  ⁠The canister accepts cycles (ICP’s computational resource) to cover transaction costs.  
+•⁠  ⁠Cycles can be released to a specified recipient by the owner.  
 
-## Running the project locally
+---
 
-If you want to test your project locally, you can use the following commands:
+### *3. Data Structures*  
+#### *UserProfile*  
+Stores user details:  
+⁠ motoko
+type UserProfile = {
+  principal: Principal; // Derived unique identifier
+  passwordHash: Text; // Password hash (upgrade to bcrypt/scrypt in production)
+  active: Bool; // Session status
+  lastLogin: ?Time.Time; // Last login timestamp
+};
+ ⁠
 
-```bash
-# Starts the replica, running in the background
-dfx start --background
+#### *EscrowTransaction*  
+Tracks escrow details:  
+⁠ motoko
+type EscrowTransaction = {
+  id: EscrowId; // Unique transaction ID
+  seller: UserId; // Seller’s Principal
+  buyer: UserId; // Buyer’s Principal
+  amount: Nat; // Locked token amount
+  description: Text; // Deliverable description
+  status: TransactionStatus; // #Pending, #Completed, #Refunded, #Cancelled
+  timestamp: Time.Time; // Creation time
+};
+ ⁠
 
-# Deploys your canisters to the replica and generates your candid interface
-dfx deploy
-```
+---
 
-Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
+### *4. Core Functions*  
 
-If you have made changes to your backend canister, you can generate a new candid interface with
+#### *a. User Management*  
+•⁠  ⁠*⁠ register(username: Text, password: Text) ⁠*  
+  - Registers a new user with a derived Principal.  
+  - *Parameters*: Username (unique) and password (hashed).  
+  - *Return*: ⁠ #ok("User registered") ⁠ or ⁠ #err("Username taken") ⁠.  
 
-```bash
-npm run generate
-```
+•⁠  ⁠*⁠ login(username: Text, password: Text) ⁠*  
+  - Authenticates users and starts a session.  
+  - *Parameters*: Username and password.  
+  - *Return*: ⁠ #ok("Login success") ⁠ or errors for invalid credentials.  
 
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
+•⁠  ⁠*⁠ logout() ⁠*  
+  - Ends the user’s active session.  
+  - *Return*: ⁠ #ok("Logout success") ⁠ or ⁠ #err("Not logged in") ⁠.  
 
-If you are making frontend changes, you can start a development server with
+---
 
-```bash
-npm start
-```
+#### *b. Escrow Workflow*  
+•⁠  ⁠*⁠ createEscrow(seller: Text, amount: Nat, description: Text) ⁠*  
+  - Creates a new escrow transaction.  
+  - *Parameters*: Seller’s username, token amount, and deliverable description.  
+  - *Process*:  
+    - Deducts tokens from the buyer’s balance.  
+    - Generates a unique escrow ID using timestamp and Principal hashes.  
+  - *Return*: Escrow ID or errors (e.g., insufficient funds).  
 
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+•⁠  ⁠*⁠ confirmDelivery(escrowId: EscrowId) ⁠*  
+  - Releases funds to the seller if deliverables are met.  
+  - *Access*: Only the buyer can confirm.  
+  - *Return*: ⁠ #ok(()) ⁠ or errors (e.g., invalid ID).  
 
-### Note on frontend environment variables
+•⁠  ⁠*⁠ cancelEscrow(escrowId: EscrowId) ⁠*  
+  - Refunds tokens to the buyer if terms are unmet.  
+  - *Access*: Owner or seller can cancel.  
+  - *Return*: ⁠ #ok(()) ⁠ or errors (e.g., non-pending status).  
 
-If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
+---
 
-- set`DFX_NETWORK` to `ic` if you are using Webpack
-- use your own preferred method to replace `process.env.DFX_NETWORK` in the autogenerated declarations
-  - Setting `canisters -> {asset_canister_id} -> declarations -> env_override to a string` in `dfx.json` will replace `process.env.DFX_NETWORK` with the string in the autogenerated declarations
-- Write your own `createActor` constructor
+#### *c. Balance & Cycle Management*  
+•⁠  ⁠*⁠ addBalance(amount: Nat) ⁠*  
+  - Adds tokens to the user’s balance.  
+  - *Access*: Requires authentication.  
+
+•⁠  ⁠*⁠ deposit() ⁠*  
+  - Accepts cycles to fund canister operations.  
+  - *Access*: Requires login.  
+
+•⁠  ⁠*⁠ release(recipient: Principal) ⁠*  
+  - Transfers cycles to a specified recipient.  
+  - *Access*: Only the owner can execute.  
+
+---
+
+### *5. Security Considerations*  
+•⁠  ⁠*Password Hashing*: The current ⁠ hashPassword ⁠ function is simplistic. Replace it with a secure algorithm (e.g., bcrypt) in production.  
+•⁠  ⁠*Principal Derivation*: Users are assigned a unique derived Principal to prevent spoofing.  
+•⁠  ⁠*Collision Handling*: Escrow IDs use a pseudo-random generator with fallback to sequential IDs.  
+
+---
+
+### *6. Deployment*  
+1.⁠ ⁠*Prerequisites*:  
+   - Install ⁠ dfx ⁠ (ICP SDK).  
+   - Configure cycles for canister deployment.  
+
+2.⁠ ⁠*Deploy Command*:  
+   ⁠ bash
+   dfx deploy Arbitra
+    ⁠
+
+3.⁠ ⁠*Interact via CLI*:  
+   - Create escrow:  
+     ⁠ bash
+     dfx canister call Arbitra createEscrow '("seller_username", 100, "NFT Delivery")'
+      ⁠
+   - Confirm delivery:  
+     ⁠ bash
+     dfx canister call Arbitra confirmDelivery '(123)'
+      ⁠
+
+---
+
+### *7. Use Cases*  
+•⁠  ⁠*NFT Trading*: Buyers lock tokens for NFTs; funds release upon delivery.  
+•⁠  ⁠*Freelance Services*: Clients lock payment until work is verified.  
+•⁠  ⁠*Cross-Border Commerce*: Secure international transactions with automated escrow.  
+
+---
+
+### *8. Future Enhancements*  
+•⁠  ⁠*Oracle Integration*: Verify real-world deliverables (e.g., shipping proofs).  
+•⁠  ⁠*Dispute Resolution DAO*: Community-driven arbitration for unresolved disputes.  
+•⁠  ⁠*Multi-Blockchain Support*: Expand to Ethereum/Solana for interoperability.  
+
+---
+
+### *9. Contact*  
+For collaboration or feedback:  
+•⁠  ⁠Email: [your email]  
+•⁠  ⁠Discord: [your Discord link]  
+•⁠  ⁠GitHub: [repository link]  
+
+*Documentation Version*: 1.0  
+*Last Updated*: [Date]  
+
+Let me know if you need further refinements! 🚀
