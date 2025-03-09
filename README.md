@@ -151,13 +151,7 @@ type EscrowTransaction = {
 
 ---
 
-### *9. Contact*  
-For collaboration or feedback:  
-•⁠  ⁠Email: [your email]  
-•⁠  ⁠Discord: [your Discord link]  
-•⁠  ⁠GitHub: [repository link]  
-
 *Documentation Version*: 1.0  
-*Last Updated*: [Date]  
+*Last Updated*: 8 March 2025
 
 Let me know if you need further refinements! 🚀
